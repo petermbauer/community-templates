@@ -226,6 +226,14 @@ sed -e 's/DEFAULTKERNEL=kernel-uek/DEFAULTKERNEL=kernel/g' -i /etc/sysconfig/ker
 
 <%= snippet('ansible_provisioning_callback') %>
 
+# Changing EFI boot order to preserve network boot as Anaconda always puts the fresh installation as first entry
+if [[ -d /sys/firmware/efi ]]; then
+    created_entry=$(efibootmgr | grep "BootOrder" | cut -d " " -f 2 | cut -d "," -f 1)
+    others=$(efibootmgr | grep "BootOrder" | cut -d " " -f 2 | cut -d "," -f 2-)
+    new_order="${others},${created_entry}"
+    efibootmgr -q -o ${new_order}
+fi
+
 sync
 
 # Inform the build system that we are done.
